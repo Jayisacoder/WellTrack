@@ -163,7 +163,7 @@ function SignInForm() {
           </div>
         </div>
 
-        <p className="text-center text-sm text-gray-600 mt-4">
+        <p className="text-center text-sm text-gray-800 mt-4 bg-white/80 rounded-lg py-2 px-4">
           By continuing, you agree to track your wellness data securely.
         </p>
       </div>

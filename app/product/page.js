@@ -13,6 +13,7 @@ export default function Product() {
   const [aiInsights, setAiInsights] = useState(null)
   const [insightsLoading, setInsightsLoading] = useState(false)
   const [insightEntryDate, setInsightEntryDate] = useState(null)
+  const [isLPStaff, setIsLPStaff] = useState(false)
   
   // Chatbot state
   const [chatMessages, setChatMessages] = useState([
@@ -39,8 +40,21 @@ export default function Product() {
   useEffect(() => {
     if (session?.user) {
       fetchEntries()
+      checkStaffStatus()
     }
   }, [session])
+
+  const checkStaffStatus = async () => {
+    try {
+      const res = await fetch('/api/check-staff')
+      if (res.ok) {
+        const data = await res.json()
+        setIsLPStaff(data.isStaff)
+      }
+    } catch (error) {
+      console.error('Failed to check staff status:', error)
+    }
+  }
 
   const fetchEntries = async () => {
     try {
@@ -210,10 +224,6 @@ export default function Product() {
   const highMoodDays = [...new Set(
     entries.filter(e => e.mood >= 8).map(e => new Date(e.createdAt).toDateString())
   )].length
-
-  // Check if user is LP Staff
-  const lpStaffEmails = ['rob@launchpadphilly.org', 'sanaa@launchpadphilly.org', 'taheera@launchpadphilly.org']
-  const isLPStaff = session?.user?.email && lpStaffEmails.includes(session.user.email)
 
   return (
     <>
