@@ -211,6 +211,10 @@ export default function Product() {
     entries.filter(e => e.mood >= 8).map(e => new Date(e.createdAt).toDateString())
   )].length
 
+  // Check if user is LP Staff
+  const lpStaffEmails = ['rob@launchpadphilly.org', 'sanaa@launchpadphilly.org', 'taheera@launchpadphilly.org']
+  const isLPStaff = session?.user?.email && lpStaffEmails.includes(session.user.email)
+
   return (
     <>
       <style jsx global>{globalStyles}</style>
@@ -220,9 +224,18 @@ export default function Product() {
         <div className="container">
           <div className="top-nav">
             <Link href="/" className="back-link">← Back to Home</Link>
-            <button onClick={() => signOut({ callbackUrl: '/' })} className="logout-btn">
-              Sign Out
-            </button>
+            <div className="top-nav-right">
+              {isLPStaff && (
+                <div className="staff-nav">
+                  <span className="staff-badge">🔒 LP Staff</span>
+                  <Link href="/rubric-evidence" className="staff-link">Rubric Evidence</Link>
+                  <Link href="/reflection" className="staff-link">Reflection</Link>
+                </div>
+              )}
+              <button onClick={() => signOut({ callbackUrl: '/' })} className="logout-btn">
+                Sign Out
+              </button>
+            </div>
           </div>
           
           <div className="header">
@@ -823,6 +836,45 @@ const globalStyles = `
     background: rgba(255,255,255,0.25);
     border-color: rgba(255,255,255,0.5);
     transform: translateY(-2px);
+  }
+
+  .dashboard-page .top-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .dashboard-page .staff-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255,255,255,0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  .dashboard-page .staff-badge {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .dashboard-page .staff-link {
+    color: white;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+
+  .dashboard-page .staff-link:hover {
+    background: rgba(255,255,255,0.2);
   }
 
   .dashboard-page .header {
