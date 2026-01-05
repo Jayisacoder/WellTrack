@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { prisma } from '../../../lib/prisma'
+import { authOptions } from '../../../lib/auth'
 
 // AI Provider functions
 async function callOpenAI(prompt, systemPrompt) {
@@ -62,7 +63,7 @@ async function callGemini(prompt, systemPrompt) {
 
 export async function POST(request) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user) {
       return NextResponse.json(

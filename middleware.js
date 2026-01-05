@@ -10,7 +10,7 @@ export async function middleware(request) {
   if (protectedRoutes.some(route => pathname.startsWith(route))) {
     const token = await getToken({ 
       req: request, 
-      secret: process.env.NEXTAUTH_SECRET 
+      secret: process.env.NEXTAUTH_SECRET || 'development-secret-do-not-use-in-production'
     })
     
     // Check if user is authenticated
