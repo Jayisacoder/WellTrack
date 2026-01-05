@@ -1,335 +1,514 @@
+'use client'
+
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function Reflection() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin')
+    }
+  }, [status, router])
+
+  if (status === 'loading') {
+    return (
+      <div className="loading-container">
+        <style jsx>{`
+          .loading-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+          }
+        `}</style>
+        Loading...
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 py-12">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Header */}
-        <div className="mb-8">
-          <Link href="/" className="text-white hover:text-purple-200 mb-6 inline-flex items-center gap-2 text-lg">
-            ← Back to Home
-          </Link>
-          <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6 rounded-r-lg">
-            <p className="text-sm font-bold">🔒 LP Staff Only - This page is restricted to authorized Learning Portfolio staff members</p>
-          </div>
-          <h1 className="text-5xl font-bold text-white mb-4">
-            Developer Reflection
-          </h1>
-          <p className="text-2xl text-purple-100">
-            Insights, Challenges, and Learning Outcomes
-          </p>
-        </div>
+    <>
+      <style jsx global>{`
+        .reflection-page {
+          min-height: 100vh;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          padding: 2rem 1rem;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .reflection-container {
+          max-width: 900px;
+          margin: 0 auto;
+        }
+        .reflection-header {
+          margin-bottom: 2rem;
+        }
+        .back-link {
+          color: white;
+          text-decoration: none;
+          font-size: 1rem;
+          opacity: 0.9;
+          display: inline-block;
+          margin-bottom: 1rem;
+        }
+        .back-link:hover {
+          opacity: 1;
+        }
+        .staff-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          background: #fef3c7;
+          color: #92400e;
+          padding: 0.5rem 1rem;
+          border-radius: 20px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          margin-bottom: 1rem;
+        }
+        .reflection-title {
+          font-size: 2.5rem;
+          font-weight: 700;
+          color: white;
+          margin: 0 0 0.5rem 0;
+        }
+        .reflection-subtitle {
+          font-size: 1.25rem;
+          color: rgba(255,255,255,0.9);
+          margin: 0 0 0.5rem 0;
+        }
+        .reflection-purpose {
+          font-size: 1rem;
+          color: rgba(255,255,255,0.8);
+          font-style: italic;
+          margin: 0;
+        }
+        .reflection-card {
+          background: white;
+          border-radius: 16px;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+          margin-bottom: 1.5rem;
+          overflow: hidden;
+        }
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1.5rem;
+          background: linear-gradient(135deg, #f8fafc, #eef2ff);
+          border-bottom: 1px solid #e2e8f0;
+        }
+        .card-icon {
+          font-size: 2rem;
+          margin-right: 1rem;
+        }
+        .header-content {
+          flex: 1;
+        }
+        .card-title {
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: #1e293b;
+          margin: 0;
+        }
+        .card-subtitle {
+          font-size: 0.875rem;
+          color: #64748b;
+          margin: 0.25rem 0 0 0;
+        }
+        .card-content {
+          padding: 1.5rem;
+        }
+        .reflection-list {
+          list-style: disc;
+          padding-left: 1.5rem;
+          color: #4b5563;
+          line-height: 1.8;
+          margin: 0;
+        }
+        .reflection-list li {
+          margin-bottom: 0.75rem;
+        }
+        .highlight {
+          background: #fef3c7;
+          padding: 0.125rem 0.375rem;
+          border-radius: 4px;
+          font-weight: 600;
+        }
+        .code-mention {
+          background: #f1f5f9;
+          font-family: Monaco, Consolas, monospace;
+          padding: 0.125rem 0.375rem;
+          border-radius: 4px;
+          font-size: 0.875rem;
+        }
+        .challenge-item {
+          background: #fef2f2;
+          border-left: 4px solid #ef4444;
+          padding: 1rem;
+          margin-bottom: 1rem;
+          border-radius: 0 8px 8px 0;
+        }
+        .challenge-title {
+          font-weight: 700;
+          color: #991b1b;
+          margin-bottom: 0.5rem;
+        }
+        .challenge-text {
+          color: #7f1d1d;
+          margin: 0;
+        }
+        .solution-badge {
+          display: inline-block;
+          background: #dcfce7;
+          color: #166534;
+          font-size: 0.75rem;
+          padding: 0.25rem 0.5rem;
+          border-radius: 4px;
+          margin-top: 0.5rem;
+        }
+        .change-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 1rem;
+          padding: 1rem;
+          background: #f8fafc;
+          border-radius: 8px;
+          margin-bottom: 0.75rem;
+        }
+        .change-icon {
+          font-size: 1.5rem;
+          flex-shrink: 0;
+        }
+        .change-content h4 {
+          font-weight: 600;
+          color: #1e293b;
+          margin: 0 0 0.25rem 0;
+        }
+        .change-content p {
+          color: #64748b;
+          margin: 0;
+          font-size: 0.9rem;
+        }
+        .future-grid {
+          display: grid;
+          gap: 1rem;
+        }
+        .future-item {
+          display: flex;
+          gap: 1rem;
+          padding: 1rem;
+          background: linear-gradient(135deg, #eff6ff, #eef2ff);
+          border-radius: 8px;
+          border: 1px solid #c7d2fe;
+        }
+        .future-icon {
+          font-size: 2rem;
+          flex-shrink: 0;
+        }
+        .future-content h4 {
+          font-weight: 600;
+          color: #3730a3;
+          margin: 0 0 0.25rem 0;
+        }
+        .future-content p {
+          color: #4338ca;
+          margin: 0;
+          font-size: 0.9rem;
+        }
+        .summary-box {
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          border-radius: 12px;
+          padding: 1.5rem;
+          color: white;
+          margin-top: 2rem;
+        }
+        .summary-title {
+          font-size: 1.25rem;
+          font-weight: 700;
+          margin: 0 0 1rem 0;
+        }
+        .summary-text {
+          font-size: 1rem;
+          line-height: 1.7;
+          margin: 0;
+          opacity: 0.95;
+        }
+        .navigation {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 2rem;
+          flex-wrap: wrap;
+          gap: 1rem;
+        }
+        .nav-btn {
+          display: inline-block;
+          background: rgba(255,255,255,0.2);
+          color: white;
+          padding: 0.75rem 1.5rem;
+          border-radius: 8px;
+          text-decoration: none;
+          font-size: 1rem;
+          font-weight: 600;
+        }
+        .nav-btn-primary {
+          display: inline-block;
+          background: white;
+          color: #6366f1;
+          padding: 0.75rem 1.5rem;
+          border-radius: 8px;
+          text-decoration: none;
+          font-size: 1rem;
+          font-weight: 600;
+        }
+      `}</style>
 
-        {/* Development Approach */}
-        <div className="bg-white rounded-2xl shadow-2xl p-10 mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">
-            Development Approach
-          </h2>
-          <div className="space-y-4 text-gray-700 text-lg leading-relaxed">
-            <p>
-              This project was built with a <strong>requirements-driven methodology</strong>, 
-              prioritizing exact alignment with specified criteria over feature expansion or 
-              architectural complexity. Every decision was made to ensure the deliverable 
-              matched the rubric precisely.
-            </p>
+      <div className="reflection-page">
+        <div className="reflection-container">
+          {/* Header */}
+          <div className="reflection-header">
+            <Link href="/" className="back-link">← Back to Home</Link>
             
-            <p>
-              The approach followed these principles:
-            </p>
-            <ul className="list-disc ml-6 space-y-2">
-              <li>
-                <strong>Rubric First:</strong> Each page was designed to satisfy a specific 
-                assessment requirement (CCC.1.1, CCC.1.2, CCC.1.3, etc.)
-              </li>
-              <li>
-                <strong>No Feature Creep:</strong> Resisted the temptation to add unnecessary 
-                features that weren't explicitly required
-              </li>
-              <li>
-                <strong>Clear Documentation:</strong> Every component includes explanatory 
-                text connecting it back to the project requirements
-              </li>
-              <li>
-                <strong>Technology Constraints:</strong> Strictly adhered to Next.js 16, 
-                JavaScript (not TypeScript), Prisma, PostgreSQL, Tailwind, and bcryptjs
-              </li>
-            </ul>
-
-            <p>
-              This disciplined approach ensured the final deliverable is <em>exactly</em> what 
-              was requested—no more, no less.
+            <div className="staff-badge">
+              <span>🔒</span>
+              <span>LP Staff Only</span>
+            </div>
+            
+            <h1 className="reflection-title">Developer Reflection</h1>
+            <p className="reflection-subtitle">Insights from building WellTrack</p>
+            <p className="reflection-purpose">
+              Honest reflection on the development process, challenges, and learning outcomes.
             </p>
           </div>
-        </div>
 
-        {/* Key Challenges */}
-        <div className="bg-white rounded-2xl shadow-2xl p-10 mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">
-            Key Challenges & Solutions
-          </h2>
-          
-          <div className="space-y-6">
-            {/* Challenge 1 */}
-            <div className="border-l-4 border-purple-500 pl-6">
-              <h3 className="font-bold text-xl text-gray-900 mb-3">
-                1. Role-Based Access Control Implementation
-              </h3>
-              <p className="text-gray-700 mb-2 text-lg">
-                <strong>Challenge:</strong> Protecting LP staff pages (/rubric-evidence and 
-                /reflection) while keeping public pages accessible required understanding 
-                Next.js 16 middleware patterns and NextAuth JWT token validation.
-              </p>
-              <p className="text-gray-700">
-                <strong>Solution:</strong> Created middleware.js that intercepts requests to 
-                protected routes, validates authentication via NextAuth tokens, and checks 
-                user email against LP_STAFF_EMAILS environment variable. Unauthorized users 
-                are redirected to appropriate pages with clear messaging.
-              </p>
+          {/* Section A: What Went Well */}
+          <div className="reflection-card">
+            <div className="card-header">
+              <span className="card-icon">✅</span>
+              <div className="header-content">
+                <h2 className="card-title">Section A: What Went Well</h2>
+                <p className="card-subtitle">Successes and achievements during development</p>
+              </div>
             </div>
-
-            {/* Challenge 2 */}
-            <div className="border-l-4 border-purple-500 pl-4">
-              <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                2. Meaningful AI Integration
-              </h3>
-              <p className="text-gray-700 mb-2">
-                <strong>Challenge:</strong> The requirement explicitly stated "A placeholder 
-                AI call is not acceptable." The AI had to genuinely analyze user data and 
-                produce contextual insights—not generic responses.
-              </p>
-              <p className="text-gray-700">
-                <strong>Solution:</strong> Designed the /api/analyze endpoint to fetch the 
-                user's complete wellness history, construct a detailed prompt with actual 
-                data points (mood trends, sleep patterns, activity correlations), and send 
-                this context to the AI service. The AI's response is based on real patterns 
-                in the user's unique data, making each insight genuinely personalized.
-              </p>
-            </div>
-
-            {/* Challenge 3 */}
-            <div className="border-l-4 border-green-500 pl-4">
-              <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                3. Database Schema Design
-              </h3>
-              <p className="text-gray-700 mb-2">
-                <strong>Challenge:</strong> Balancing simplicity with functionality—capturing 
-                enough wellness data to enable meaningful AI analysis without overwhelming 
-                users or over-complicating the MVP.
-              </p>
-              <p className="text-gray-700">
-                <strong>Solution:</strong> Settled on six core metrics (mood, stress, sleep, 
-                exercise, activities, notes) that research suggests are most predictive of 
-                mental wellness. The Prisma schema includes proper relationships, indexes, 
-                and cascade deletes while remaining straightforward to query and maintain.
-              </p>
-            </div>
-
-            {/* Challenge 4 */}
-            <div className="border-l-4 border-red-500 pl-4">
-              <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                4. Page Purpose Clarity
-              </h3>
-              <p className="text-gray-700 mb-2">
-                <strong>Challenge:</strong> Each page had to clearly fulfill its designated 
-                rubric requirement without ambiguity. Evaluators needed to immediately 
-                understand which criterion each page addressed.
-              </p>
-              <p className="text-gray-700">
-                <strong>Solution:</strong> Added explicit section headers like "The Problem 
-                We Address" (CCC.1.1), "Our Solution" (CCC.1.2), and "Features Overview" 
-                (CCC.1.3). The Rubric Evidence page maps each requirement to its specific 
-                implementation location, creating a clear audit trail.
-              </p>
+            
+            <div className="card-content">
+              <ul className="reflection-list">
+                <li>
+                  <strong>AI Integration with Fallbacks:</strong> Successfully implemented a 3-tier AI system (OpenAI → Gemini → Local) that ensures users always receive insights, even when external APIs fail or hit rate limits.
+                </li>
+                <li>
+                  <strong>Role-Based Access Control:</strong> The middleware-based RBA system works seamlessly, protecting LP Staff pages while maintaining a smooth user experience for regular users.
+                </li>
+                <li>
+                  <strong>Gamification System:</strong> The badge/achievement system with <span className="highlight">6 collectible badges</span> adds motivation and engagement beyond basic tracking.
+                </li>
+                <li>
+                  <strong>Responsive Dashboard Layout:</strong> The 3-column grid design adapts well to different screen sizes while keeping all important features visible.
+                </li>
+                <li>
+                  <strong>Database Design:</strong> Using <span className="code-mention">Prisma</span> with PostgreSQL (Neon) made schema management and queries straightforward.
+                </li>
+                <li>
+                  <strong>Interactive Chatbot:</strong> The wellness chatbot provides real-time AI assistance for user questions about health and wellness.
+                </li>
+                <li>
+                  <strong>Clean Code Structure:</strong> Organized project structure with clear separation between pages, API routes, and utilities.
+                </li>
+              </ul>
             </div>
           </div>
-        </div>
 
-        {/* What I Learned */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            What I Learned
-          </h2>
-          
-          <div className="space-y-4 text-gray-700">
-            <div>
-              <h3 className="font-semibold text-blue-700 mb-2">
-                Next.js 16 App Router Architecture
-              </h3>
-              <p>
-                Gained hands-on experience with Next.js 16's App Router, including file-based 
-                routing, server components, client components ('use client'), API route handlers, 
-                and middleware patterns. Understanding when to use server vs. client rendering 
-                was crucial for authentication flows.
-              </p>
+          {/* Section B: What Didn't Go Well */}
+          <div className="reflection-card">
+            <div className="card-header">
+              <span className="card-icon">⚠️</span>
+              <div className="header-content">
+                <h2 className="card-title">Section B: What Didn't Go Well</h2>
+                <p className="card-subtitle">Challenges, constraints, and areas for improvement</p>
+              </div>
             </div>
+            
+            <div className="card-content">
+              <div className="challenge-item">
+                <div className="challenge-title">API Rate Limits</div>
+                <p className="challenge-text">
+                  OpenAI's free tier rate limits were hit quickly during testing, causing the AI insights to fail unexpectedly. Had to research and implement Gemini as a fallback.
+                </p>
+                <span className="solution-badge">✓ Solved with multi-provider fallback</span>
+              </div>
 
-            <div>
-              <h3 className="font-semibold text-blue-700 mb-2">
-                Prisma ORM with PostgreSQL
-              </h3>
-              <p>
-                Learned to design database schemas declaratively, use Prisma Client for 
-                type-safe queries, handle relationships between models, and implement proper 
-                indexing strategies. The Developer Experience (DX) of Prisma compared to raw 
-                SQL was eye-opening.
-              </p>
-            </div>
+              <div className="challenge-item">
+                <div className="challenge-title">Time Constraints</div>
+                <p className="challenge-text">
+                  Limited time meant prioritizing core MVP features over advanced visualizations like charts and trend graphs that were originally planned.
+                </p>
+                <span className="solution-badge">✓ Focused on essential features</span>
+              </div>
 
-            <div>
-              <h3 className="font-semibold text-blue-700 mb-2">
-                Authentication & Authorization Patterns
-              </h3>
-              <p>
-                Implemented a complete auth system with NextAuth, bcryptjs password hashing, 
-                JWT tokens, session management, and role-based middleware. Learned the critical 
-                distinction between authentication (who you are) and authorization (what you 
-                can access).
-              </p>
-            </div>
+              <div className="challenge-item">
+                <div className="challenge-title">Layout Complexity</div>
+                <p className="challenge-text">
+                  Balancing the dashboard layout to show form, chatbot, badges, and stats without overwhelming users took multiple iterations.
+                </p>
+                <span className="solution-badge">✓ Refined with 3-column grid</span>
+              </div>
 
-            <div>
-              <h3 className="font-semibold text-blue-700 mb-2">
-                AI Integration in Full-Stack Applications
-              </h3>
-              <p>
-                Explored how to integrate AI services into a web application beyond simple 
-                prompt-response patterns. Learned to construct contextual prompts from database 
-                data, handle API rate limits and errors gracefully, and present AI-generated 
-                content in a user-friendly way.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-blue-700 mb-2">
-                Requirements-Driven Development
-              </h3>
-              <p>
-                The most valuable lesson: <strong>building exactly what's needed, not what's 
-                interesting</strong>. In a graded project, alignment with requirements trumps 
-                technical sophistication. A simple, well-documented app that meets all criteria 
-                will score higher than a complex app that deviates from specifications.
-              </p>
+              <div className="challenge-item">
+                <div className="challenge-title">Badge Logic Issues</div>
+                <p className="challenge-text">
+                  Initially counted total entries instead of unique days for badges, causing incorrect progress. Required debugging and logic refinement.
+                </p>
+                <span className="solution-badge">✓ Fixed with unique day counting</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Technical Decisions */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Technical Decisions Explained
-          </h2>
-          
-          <div className="space-y-4 text-gray-700">
-            <div>
-              <h3 className="font-semibold mb-1">Why JavaScript over TypeScript?</h3>
-              <p>
-                Explicit project requirement. While TypeScript offers type safety benefits, 
-                adhering to requirements was the priority.
-              </p>
+          {/* Section C: Changes Made During Project */}
+          <div className="reflection-card">
+            <div className="card-header">
+              <span className="card-icon">🔄</span>
+              <div className="header-content">
+                <h2 className="card-title">Section C: Changes Made During Development</h2>
+                <p className="card-subtitle">How the project evolved from initial plan</p>
+              </div>
             </div>
+            
+            <div className="card-content">
+              <div className="change-item">
+                <span className="change-icon">🤖</span>
+                <div className="change-content">
+                  <h4>Added AI Fallback System</h4>
+                  <p>Original plan was OpenAI only. Added Gemini and local fallback after hitting rate limits during testing.</p>
+                </div>
+              </div>
 
-            <div>
-              <h3 className="font-semibold mb-1">Why NextAuth for authentication?</h3>
-              <p>
-                Industry-standard solution for Next.js apps with built-in JWT support, 
-                session management, and provider flexibility. Reduces security risks compared 
-                to rolling custom auth.
-              </p>
-            </div>
+              <div className="change-item">
+                <span className="change-icon">💬</span>
+                <div className="change-content">
+                  <h4>Added Wellness Chatbot</h4>
+                  <p>Chatbot wasn't in initial scope. Added it to provide interactive AI assistance beyond post-entry insights.</p>
+                </div>
+              </div>
 
-            <div>
-              <h3 className="font-semibold mb-1">Why Tailwind CSS?</h3>
-              <p>
-                Required by project specs. Additionally, Tailwind's utility-first approach 
-                enables rapid UI development without writing custom CSS, ideal for an MVP timeline.
-              </p>
-            </div>
+              <div className="change-item">
+                <span className="change-icon">🏆</span>
+                <div className="change-content">
+                  <h4>Expanded Badge System</h4>
+                  <p>Started with 3 basic badges, expanded to 6 with progress bars and trophy case display.</p>
+                </div>
+              </div>
 
-            <div>
-              <h3 className="font-semibold mb-1">Why PostgreSQL over other databases?</h3>
-              <p>
-                Required by specs. PostgreSQL provides robust relational data modeling, ACID 
-                compliance for sensitive health data, and excellent Prisma integration.
-              </p>
-            </div>
+              <div className="change-item">
+                <span className="change-icon">📊</span>
+                <div className="change-content">
+                  <h4>Simplified Visualizations</h4>
+                  <p>Removed planned Chart.js graphs in favor of simpler stats snapshot. Made the UI cleaner and faster.</p>
+                </div>
+              </div>
 
-            <div>
-              <h3 className="font-semibold mb-1">Why seven separate pages?</h3>
-              <p>
-                Each page serves a specific rubric requirement. This structure ensures clear 
-                mapping between deliverables and assessment criteria, making evaluation 
-                straightforward.
-              </p>
+              <div className="change-item">
+                <span className="change-icon">🎨</span>
+                <div className="change-content">
+                  <h4>Redesigned Dashboard Layout</h4>
+                  <p>Changed from single-column to 3-column grid layout to better utilize screen space and show more information at once.</p>
+                </div>
+              </div>
+
+              <div className="change-item">
+                <span className="change-icon">📅</span>
+                <div className="change-content">
+                  <h4>Added Daily Logging Check</h4>
+                  <p>Added "already logged today" detection to encourage consistent daily tracking without duplicate entries.</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Future Enhancements (Beyond MVP) */}
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            Future Enhancements (Beyond MVP Scope)
-          </h2>
-          
-          <p className="text-gray-700 mb-4">
-            While not part of this assessment deliverable, potential improvements for a 
-            production version could include:
-          </p>
-          
-          <ul className="space-y-2 text-gray-700">
-            <li>
-              <strong>Data Visualization:</strong> Charts and graphs showing mood trends, 
-              sleep patterns, and activity correlations over time
-            </li>
-            <li>
-              <strong>Goal Setting:</strong> Allow users to set wellness goals and track progress
-            </li>
-            <li>
-              <strong>Reminders:</strong> Push notifications or email reminders for daily logging
-            </li>
-            <li>
-              <strong>Export Functionality:</strong> PDF or CSV export for sharing with healthcare providers
-            </li>
-            <li>
-              <strong>Mobile App:</strong> Native iOS/Android apps using React Native or Flutter
-            </li>
-            <li>
-              <strong>Social Features:</strong> Optional community support or peer encouragement
-            </li>
-            <li>
-              <strong>Advanced AI:</strong> Predictive modeling to forecast future mood states
-            </li>
-            <li>
-              <strong>Integration:</strong> Sync with fitness trackers, calendar apps, or weather data
-            </li>
-          </ul>
+          {/* Section D: What I'd Build Next */}
+          <div className="reflection-card">
+            <div className="card-header">
+              <span className="card-icon">🚀</span>
+              <div className="header-content">
+                <h2 className="card-title">Section D: What I'd Build Next</h2>
+                <p className="card-subtitle">Future features and improvements</p>
+              </div>
+            </div>
+            
+            <div className="card-content">
+              <div className="future-grid">
+                <div className="future-item">
+                  <span className="future-icon">📈</span>
+                  <div className="future-content">
+                    <h4>Interactive Data Visualizations</h4>
+                    <p>Add Chart.js or Recharts for mood trends, sleep patterns, and stress correlation graphs over time.</p>
+                  </div>
+                </div>
 
-          <p className="text-gray-700 mt-4 italic">
-            These features were intentionally omitted to maintain focus on rubric requirements 
-            and avoid over-engineering the MVP.
-          </p>
-        </div>
+                <div className="future-item">
+                  <span className="future-icon">📱</span>
+                  <div className="future-content">
+                    <h4>Mobile App (React Native)</h4>
+                    <p>Build a native mobile app for easier daily check-ins with push notification reminders.</p>
+                  </div>
+                </div>
 
-        {/* Conclusion */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg shadow-lg p-8">
-          <h2 className="text-2xl font-bold mb-4">
-            Conclusion
-          </h2>
-          <p className="mb-4">
-            WellTrack successfully demonstrates the ability to:
-          </p>
-          <ul className="space-y-2 mb-4">
-            <li>✓ Translate requirements into a functional application</li>
-            <li>✓ Implement modern web technologies (Next.js 16, Prisma, PostgreSQL)</li>
-            <li>✓ Integrate AI meaningfully and purposefully</li>
-            <li>✓ Build secure authentication and authorization systems</li>
-            <li>✓ Document technical decisions and learning outcomes</li>
-          </ul>
-          <p className="text-lg font-semibold">
-            This project proves that a simple, focused, well-explained application aligned 
-            with requirements is more valuable than a complex solution that misses the mark.
-          </p>
+                <div className="future-item">
+                  <span className="future-icon">⌚</span>
+                  <div className="future-content">
+                    <h4>Wearable Integration</h4>
+                    <p>Connect to Apple Watch, Fitbit, or Garmin to automatically import sleep and exercise data.</p>
+                  </div>
+                </div>
+
+                <div className="future-item">
+                  <span className="future-icon">👥</span>
+                  <div className="future-content">
+                    <h4>Community Features</h4>
+                    <p>Add optional anonymous sharing, wellness challenges, and accountability partners.</p>
+                  </div>
+                </div>
+
+                <div className="future-item">
+                  <span className="future-icon">🧠</span>
+                  <div className="future-content">
+                    <h4>Advanced AI Predictions</h4>
+                    <p>Use machine learning to predict stress spikes and suggest preventive actions based on patterns.</p>
+                  </div>
+                </div>
+
+                <div className="future-item">
+                  <span className="future-icon">🔔</span>
+                  <div className="future-content">
+                    <h4>Smart Reminders</h4>
+                    <p>AI-powered reminders that adapt timing based on when users typically log their entries.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Summary */}
+          <div className="summary-box">
+            <h3 className="summary-title">Final Thoughts</h3>
+            <p className="summary-text">
+              Building WellTrack taught me valuable lessons about API integration, error handling, and iterative development. The biggest takeaway was the importance of fallback systems—when external services fail, users shouldn't suffer. The project also reinforced that a simple, working solution aligned with requirements beats an ambitious project that doesn't meet the core objectives. I'm proud of what was accomplished within the constraints and excited about the potential for future development.
+            </p>
+          </div>
+
+          {/* Navigation */}
+          <div className="navigation">
+            <Link href="/rubric-evidence" className="nav-btn">← Back to Rubric Evidence</Link>
+            <Link href="/product" className="nav-btn-primary">View Product →</Link>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }

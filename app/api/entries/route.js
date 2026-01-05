@@ -37,6 +37,8 @@ export async function POST(request) {
   try {
     const session = await getServerSession()
     
+    console.log('POST /api/entries - Session:', session?.user?.email)
+    
     if (!session?.user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -44,7 +46,10 @@ export async function POST(request) {
       )
     }
 
-    const { mood, stress, sleep, exercise, activities, notes } = await request.json()
+    const body = await request.json()
+    const { mood, stress, sleep, exercise, activities, notes } = body
+    
+    console.log('Received data:', { mood, stress, sleep, exercise, activities, notes })
 
     // Find user
     const user = await prisma.user.findUnique({
@@ -52,24 +57,29 @@ export async function POST(request) {
     })
 
     if (!user) {
+      console.log('User not found:', session.user.email)
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       )
     }
 
+    console.log('Found user:', user.id)
+
     // Create entry
     const entry = await prisma.wellnessEntry.create({
       data: {
         userId: user.id,
-        mood: parseInt(mood),
-        stress: parseInt(stress),
-        sleep: parseFloat(sleep),
+        mood: parseInt(mood) || 5,
+        stress: parseInt(stress) || 5,
+        sleep: parseFloat(sleep) || 7,
         exercise: Boolean(exercise),
         activities: activities || null,
         notes: notes || null
       }
     })
+
+    console.log('Created entry:', entry.id)
 
     return NextResponse.json(entry, { status: 201 })
   } catch (error) {

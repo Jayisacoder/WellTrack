@@ -2,6 +2,64 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { prisma } from '../../../lib/prisma'
 
+// AI Provider functions
+async function callOpenAI(prompt, systemPrompt) {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: process.env.AI_MODEL || 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.7,
+      max_tokens: 300
+    })
+  })
+  
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`OpenAI API error: ${error}`)
+  }
+  
+  const data = await response.json()
+  return data.choices[0].message.content
+}
+
+async function callGemini(prompt, systemPrompt) {
+  const model = process.env.AI_MODEL || 'gemini-2.0-flash'
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.AI_API_KEY}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{ text: `${systemPrompt}\n\n${prompt}` }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 300
+        }
+      })
+    }
+  )
+  
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Gemini API error: ${error}`)
+  }
+  
+  const data = await response.json()
+  return data.candidates[0].content.parts[0].text
+}
+
 export async function POST(request) {
   try {
     const session = await getServerSession()
@@ -76,65 +134,40 @@ export async function POST(request) {
       : 'N/A'
 
     // Construct AI prompt with actual user data
-    const prompt = `You are a mental wellness advisor analyzing a user's wellness tracking data. Provide personalized, actionable insights based on their patterns.
+    const prompt = `Analyze this wellness data and give brief, punchy insights.
 
-User's Current Entry:
-- Mood: ${entry.mood}/10
-- Stress: ${entry.stress}/10
-- Sleep: ${entry.sleep} hours
-- Exercise: ${entry.exercise ? 'Yes' : 'No'}
-- Activities: ${entry.activities || 'None logged'}
-- Notes: ${entry.notes || 'None'}
+Today: Mood ${entry.mood}/10, Stress ${entry.stress}/10, Sleep ${entry.sleep}hrs, Exercise: ${entry.exercise ? 'Yes' : 'No'}
+Averages (${entries.length} days): Mood ${avgMood}, Stress ${avgStress}, Sleep ${avgSleep}hrs, Exercise ${exerciseRate}%
+Correlations: Mood with exercise ${moodWithExercise} vs without ${moodWithoutExercise}. Mood with 7+ hrs sleep ${moodWithGoodSleep} vs <6hrs ${moodWithPoorSleep}.
 
-Historical Data (${entries.length} entries):
-- Average Mood: ${avgMood}/10
-- Average Stress: ${avgStress}/10
-- Average Sleep: ${avgSleep} hours
-- Exercise Frequency: ${exerciseRate}% of days
+Respond with EXACTLY this format (keep each point to 1 short sentence):
+📊 **Pattern:** [one key observation from the data]
+💡 **Tip:** [one specific actionable recommendation]
+✨ **Note:** [brief encouragement or observation]
 
-Correlations Found:
-- Mood on days WITH exercise: ${moodWithExercise}/10
-- Mood on days WITHOUT exercise: ${moodWithoutExercise}/10
-- Mood with 7+ hours sleep: ${moodWithGoodSleep}/10
-- Mood with less than 6 hours sleep: ${moodWithPoorSleep}/10
+Be concise. No fluff. Max 50 words total.`
 
-Based on this data, provide:
-1. 2-3 specific observations about their wellness patterns
-2. 2-3 actionable recommendations tailored to their data
-3. Encouragement for positive trends or gentle guidance for areas needing attention
+    const systemPrompt = 'You are a supportive mental wellness advisor who provides data-driven insights based on user wellness tracking data.'
 
-Keep the response conversational, supportive, and under 200 words. Focus on what the DATA shows, not generic advice.`
-
-    // Call AI service (OpenAI example - adjust based on your AI provider)
-    const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.AI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: process.env.AI_MODEL || 'gpt-4',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a supportive mental wellness advisor who provides data-driven insights.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 300
+    // Determine which AI provider to use based on AI_PROVIDER env variable
+    const provider = process.env.AI_PROVIDER || 'openai'
+    let insights
+    
+    try {
+      if (provider === 'gemini') {
+        insights = await callGemini(prompt, systemPrompt)
+      } else {
+        insights = await callOpenAI(prompt, systemPrompt)
+      }
+    } catch (aiError) {
+      console.error('External AI failed, using local analysis:', aiError.message)
+      // Use local analysis as fallback
+      insights = generateLocalInsights(entry, entries, {
+        avgMood, avgStress, avgSleep, exerciseRate,
+        moodWithExercise, moodWithoutExercise,
+        moodWithGoodSleep, moodWithPoorSleep
       })
-    })
-
-    if (!aiResponse.ok) {
-      throw new Error('AI service error')
     }
-
-    const aiData = await aiResponse.json()
-    const insights = aiData.choices[0].message.content
 
     // Save insights to the entry
     await prisma.wellnessEntry.update({
@@ -145,11 +178,56 @@ Keep the response conversational, supportive, and under 200 words. Focus on what
     return NextResponse.json({ insights })
 
   } catch (error) {
-    console.error('AI analysis error:', error)
+    console.error('AI analysis error:', error.message)
+    console.error('Full error:', error)
     
     // Fallback response if AI service fails
     return NextResponse.json({
-      insights: "I'm having trouble connecting to the AI service right now. Your entry has been saved successfully. Please try again later for personalized insights!"
+      insights: `We're analyzing your data locally. Your entry has been saved successfully.`
     })
   }
+}
+
+// Local AI-like analysis function that generates insights from data patterns
+function generateLocalInsights(entry, entries, stats) {
+  const moodDiff = entry.mood - parseFloat(stats.avgMood)
+  
+  // Pattern observation
+  let pattern = ''
+  if (stats.moodWithExercise !== 'N/A' && stats.moodWithoutExercise !== 'N/A') {
+    const diff = parseFloat(stats.moodWithExercise) - parseFloat(stats.moodWithoutExercise)
+    if (diff > 0.5) {
+      pattern = `Your mood is ${stats.moodWithExercise} on exercise days vs ${stats.moodWithoutExercise} without.`
+    }
+  }
+  if (!pattern && stats.moodWithGoodSleep !== 'N/A') {
+    pattern = `Sleep impacts you: mood ${stats.moodWithGoodSleep} with 7+ hrs vs ${stats.moodWithPoorSleep} with less.`
+  }
+  if (!pattern) {
+    pattern = `Your avg mood is ${stats.avgMood}/10 across ${entries.length} entries.`
+  }
+  
+  // Tip
+  let tip = ''
+  if (!entry.exercise && stats.moodWithExercise !== 'N/A') {
+    tip = 'Try adding a short walk tomorrow.'
+  } else if (entry.sleep < 7) {
+    tip = 'Aim for 7+ hours of sleep tonight.'
+  } else if (entry.stress >= 6) {
+    tip = 'Try a 2-minute breathing exercise.'
+  } else {
+    tip = 'Keep up your current routine!'
+  }
+  
+  // Note
+  let note = ''
+  if (moodDiff >= 1) {
+    note = `Mood ${entry.mood}/10 is above your avg—nice!`
+  } else if (moodDiff <= -1) {
+    note = `Mood ${entry.mood}/10 is below avg. Tomorrow's a new day.`
+  } else {
+    note = `Steady mood at ${entry.mood}/10. Consistency matters.`
+  }
+  
+  return `📊 **Pattern:** ${pattern}\n\n💡 **Tip:** ${tip}\n\n✨ **Note:** ${note}`
 }
