@@ -380,8 +380,8 @@ export default function RubricEvidence() {
 
               <div className="button-group">
                 <Link href="/why-welltrack" className="primary-btn">View Why WellTrack</Link>
-                <a href="https://trello.com" target="_blank" rel="noopener noreferrer" className="secondary-btn">Open Project Plan</a>
-                <a href="https://figma.com" target="_blank" rel="noopener noreferrer" className="secondary-btn">Open Wireframes</a>
+                <a href="https://trello.com/b/kcUTkdbE/welltrack" target="_blank" rel="noopener noreferrer" className="secondary-btn">Open Project Plan</a>
+                <a href="https://www.notion.so/Wireframe-2de0485bf39c800ca807e9dba4738772?source=copy_link" target="_blank" rel="noopener noreferrer" className="secondary-btn">Open Wireframes</a>
               </div>
             </div>
           </div>
