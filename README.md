@@ -73,7 +73,7 @@ WellTrack's AI is the core differentiator. It:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/welltrack.git
+   git clone https://github.com/Jayisacoder/WellTrack.git
    cd welltrack
    ```
 

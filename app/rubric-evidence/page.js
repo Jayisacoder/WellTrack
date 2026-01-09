@@ -333,7 +333,7 @@ export default function RubricEvidence() {
 
               <div className="button-group">
                 <Link href="/about" className="primary-btn">View About Page</Link>
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="secondary-btn">View README Section</a>
+                <a href="https://github.com/Jayisacoder/WellTrack/blob/main/README.md" target="_blank" rel="noopener noreferrer" className="secondary-btn">View README Section</a>
               </div>
             </div>
           </div>

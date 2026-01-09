@@ -21,9 +21,10 @@ export async function middleware(request) {
     }
     
     // Check if user is LP staff (admin role)
-    const lpStaffEmails = process.env.LP_STAFF_EMAILS?.split(',').map(e => e.trim()) || []
+    const lpStaffEmails = process.env.LP_STAFF_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || []
+    const userEmail = token.email?.toLowerCase()
     
-    if (!lpStaffEmails.includes(token.email)) {
+    if (!userEmail || !lpStaffEmails.includes(userEmail)) {
       return NextResponse.redirect(new URL('/unauthorized', request.url))
     }
   }
