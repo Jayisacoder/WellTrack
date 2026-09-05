@@ -41,6 +41,14 @@ WellTrack's AI is the core differentiator. It:
 - **Calculates Insights** – Compares metrics across different conditions (exercise vs no exercise, good sleep vs poor sleep)
 - **Generates Personalized Recommendations** – Provides specific, actionable advice based on YOUR data
 - **Learns Over Time** – Uses up to 30 days of history for increasingly accurate insights
+- **Uses a private knowledge base** – Retrieves relevant, curated wellness guidance and includes it as context for the AI response
+
+### Private Knowledge-Base Customization
+
+WellTrack uses a lightweight retrieval-augmented generation (RAG) pattern. Curated guidance is stored locally in
+`lib/wellness-knowledge-base.js`. The analysis route scores entries against the user's wellness signals, retrieves the
+most relevant guidance, and adds only that context to the OpenAI or Gemini prompt. This customizes the AI experience
+for WellTrack without training a model on private user data.
 
 **Example AI Output:**
 > "Your mood averages 7.8 on days when you exercise and get 7+ hours of sleep, compared to 5.2 on days without. Consider prioritizing morning workouts and a consistent bedtime routine."

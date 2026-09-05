@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { prisma } from '../../../lib/prisma'
 import { authOptions } from '../../../lib/auth'
+import { retrieveWellnessGuidance } from '../../../lib/wellness-knowledge-base'
 
 // AI Provider functions
 async function callOpenAI(prompt, systemPrompt) {
@@ -75,8 +76,11 @@ export async function POST(request) {
     const { entryId } = await request.json()
 
     // Get the specific entry
-    const entry = await prisma.wellnessEntry.findUnique({
-      where: { id: entryId }
+    const entry = await prisma.wellnessEntry.findFirst({
+      where: {
+        id: entryId,
+        user: { email: session.user.email }
+      }
     })
 
     if (!entry) {
@@ -134,12 +138,20 @@ export async function POST(request) {
       ? (poorSleepEntries.reduce((sum, e) => sum + e.mood, 0) / poorSleepEntries.length).toFixed(1)
       : 'N/A'
 
+    const retrievedGuidance = retrieveWellnessGuidance({
+      entry,
+      stats: { avgMood, avgStress }
+    })
+
     // Construct AI prompt with actual user data
     const prompt = `Analyze this wellness data and give brief, punchy insights.
 
 Today: Mood ${entry.mood}/10, Stress ${entry.stress}/10, Sleep ${entry.sleep}hrs, Exercise: ${entry.exercise ? 'Yes' : 'No'}
 Averages (${entries.length} days): Mood ${avgMood}, Stress ${avgStress}, Sleep ${avgSleep}hrs, Exercise ${exerciseRate}%
 Correlations: Mood with exercise ${moodWithExercise} vs without ${moodWithoutExercise}. Mood with 7+ hrs sleep ${moodWithGoodSleep} vs <6hrs ${moodWithPoorSleep}.
+
+Relevant guidance retrieved from WellTrack's private wellness knowledge base:
+${retrievedGuidance}
 
 Respond with EXACTLY this format (keep each point to 1 short sentence):
 📊 **Pattern:** [one key observation from the data]
